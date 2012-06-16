@@ -2142,10 +2142,51 @@ public:
         return _aaApply(p, Key.sizeof, cast(_dg_t)dg);
     }
 
-    Value get(Key key, lazy Value defaultValue)
+    private Value getImpl(Key key, lazy Value defaultValue)
     {
         auto p = key in *cast(Value[Key]*)(&p);
         return p ? *p : defaultValue;
+    }
+
+    private ref Value atImpl(Key key, lazy Value defaultValue)
+    {
+        auto pval = key in *cast(Value[Key]*)(&p);
+        if (pval)
+        {
+            return *pval;
+        }
+        else
+        {
+            pval = cast(Value*)_aaGet(&p, typeid(Key), Value.sizeof, key);
+            auto defval = defaultValue;
+            (cast(ubyte*)pval)[0..Value.sizeof] = (cast(ubyte*)&defval)[0..Value.sizeof];
+            return *pval;
+        }
+    }
+    
+    static if (is(typeof(Value.init)))
+    {
+        Value get(Key key, lazy Value defaultValue = Value.init)
+        {
+            return getImpl(key, defaultValue);
+        }
+
+        ref Value at(Key key, lazy Value defaultValue = Value.init)
+        {
+            return atImpl(key, defaultValue);
+        }
+    }
+    else
+    {
+        Value get(Key key, lazy Value defaultValue)
+        {
+            return getImpl(key, defaultValue);
+        }
+
+        ref Value at(Key key, lazy Value defaultValue)
+        {
+            return atImpl(key, defaultValue);
+        }
     }
 
     static if (is(typeof({ Value[Key] r; r[Key.init] = Value.init; }())))
@@ -2242,6 +2283,23 @@ unittest
     const b = [4:0];
     assert(a == b);
 }
+
+unittest
+{
+    int[int] aa;
+    auto test = aa.at(10) == 0;
+    assert(test);
+    assert(aa[10] == 0);
+    
+    test = aa.at(11, 101) == 101;
+    writeln(aa.at(11, 101));
+    assert(test);
+    assert(aa[11] == 101);
+    
+    aa.at(12, 102) = 103;
+    assert(aa[12] == 103);
+}
+
 
 // Scheduled for deprecation in December 2012.
 // Please use destroy instead of clear.

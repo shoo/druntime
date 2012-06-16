@@ -476,11 +476,53 @@ public:
         return _aaApply(p, Key.sizeof, cast(_dg_t)dg);
     }
 
-    Value get(Key key, lazy Value defaultValue)
+    private Value getImpl(Key key, lazy Value defaultValue)
     {
         auto p = key in *cast(Value[Key]*)(&p);
         return p ? *p : defaultValue;
     }
+
+    private ref Value atImpl(Key key, lazy Value defaultValue)
+    {
+        auto pval = key in *cast(Value[Key]*)(&p);
+        if (pval)
+        {
+            return *pval;
+        }
+        else
+        {
+            pval = cast(Value*)_aaGet(&p, typeid(Key), Value.sizeof, key);
+            auto defval = defaultValue;
+            (cast(ubyte*)pval)[0..Value.sizeof] = (cast(ubyte*)&defval)[0..Value.sizeof];
+            return *pval;
+        }
+    }
+    
+    static if (is(typeof({auto val = Value.init; })))
+    {
+        Value get(Key key, lazy Value defaultValue = Value.init)
+        {
+            return getImpl(key, defaultValue);
+        }
+
+        ref Value at(Key key, lazy Value defaultValue = Value.init)
+        {
+            return atImpl(key, defaultValue);
+        }
+    }
+    else
+    {
+        Value get(Key key, lazy Value defaultValue)
+        {
+            return getImpl(key, defaultValue);
+        }
+
+        ref Value at(Key key, lazy Value defaultValue)
+        {
+            return atImpl(key, defaultValue);
+        }
+    }
+
 
     static if (is(typeof({ Value[Key] r; r[Key.init] = Value.init; }())))
         @property Value[Key] dup()
