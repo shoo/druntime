@@ -876,6 +876,8 @@ $(DRUNTIME): $(OBJS) $(SRCS) win32.mak
 
 unittest : $(SRCS) $(DRUNTIME) src\unittest.d
 	$(DMD) $(UDFLAGS) -L/co -version=druntime_unittest -unittest src\unittest.d $(SRCS) $(DRUNTIME) -debuglib=$(DRUNTIME) -defaultlib=$(DRUNTIME)
+	$(DMD) $(UDFLAGS) -version=druntime_unittest -version=dll_test001 src\dlltest.def src\unittest.d -ofdlltest.dll $(DRUNTIME) -debuglib=$(DRUNTIME) -defaultlib=$(DRUNTIME)
+	$(DMD) $(UDFLAGS) -version=druntime_unittest -version=dll_test002 src\unittest.d -ofdlltest.exe $(DRUNTIME) -debuglib=$(DRUNTIME) -defaultlib=$(DRUNTIME)
 
 zip: druntime.zip
 
