@@ -1,0 +1,8 @@
+LIBRARY         DLLTEST
+DESCRIPTION     'unittest of dll for druntime'
+EXETYPE         NT
+CODE            PRELOAD DISCARDABLE
+DATA            WRITE
+
+EXPORTS
+                foo
